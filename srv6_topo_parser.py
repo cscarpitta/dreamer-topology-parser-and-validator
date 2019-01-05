@@ -41,6 +41,8 @@ class SRv6TopoParser(TopoParser):
         self.verbose = verbose
         self.routers = []
         self.routers_properties = []
+        self.hosts = []
+        self.hosts_properties = []
         self.edge_links = []
         self.edge_links_properties = []
         self.core_links = []
@@ -68,6 +70,7 @@ class SRv6TopoParser(TopoParser):
         self.load_advanced()
         self.load_vertex()
         self.load_core_links()
+        self.load_edge_links()
         self.parsed = True
 
     """
@@ -79,12 +82,28 @@ class SRv6TopoParser(TopoParser):
         return self.routers
 
     """
+    Function used for retrieving hosts from json data
+    """
+    def getHosts(self):
+        if self.parsed == False:
+            self.parse_data()
+        return self.hosts
+
+    """
     Function used for retrieving routers properties from json data
     """
     def getRoutersProperties(self):
         if self.parsed == False:
             self.parse_data()
         return self.routers_properties
+
+    """
+    Function used for retrieving hosts properties from json data
+    """
+    def getHostsProperties(self):
+        if self.parsed == False:
+            self.parse_data()
+        return self.hosts_properties
 
     """
     Function used for retrieving core links from json data
@@ -101,6 +120,22 @@ class SRv6TopoParser(TopoParser):
         if self.parsed == False:
             self.parse_data()
         return self.core_links_properties
+
+    """
+    Function used for retrieving edge links from json data
+    """
+    def getEdgeLinks(self):
+        if self.parsed == False:
+            self.parse_data()
+        return self.edge_links
+
+    """
+    Function used for retrieving edge links properties from json data
+    """
+    def getEdgeLinksProperties(self):
+        if self.parsed == False:
+            self.parse_data()
+        return self.edge_links_properties
 
     """
     Parses topology advanced options
@@ -132,8 +167,12 @@ class SRv6TopoParser(TopoParser):
             if 'Router' in curvtype:
                 self.routers.append(str(vertex['id']))
                 self.routers_properties.append(curvproperty)
+            elif 'Host' in curvtype:
+                self.hosts.append(str(vertex['id']))
+                self.hosts_properties.append(curvproperty)
         if self.verbose:
             print "*** Routers:", self.routers
+            print "*** Hosts:", self.hosts
 
     # Parses core_links from topo_json_data
     def load_core_links(self):
@@ -147,6 +186,19 @@ class SRv6TopoParser(TopoParser):
                 self.core_links_properties.append(edge_property)
         if self.verbose:
             print "*** Corelinks:", self.core_links
+
+    # Parses edge_links from topo_json_data
+    def load_edge_links(self):
+        if self.verbose:
+            print "*** Retrieve Edge Links"
+        edges = self.topo_json_data['edges']
+        for edge in edges:
+            edge_property = edge['info']['property']
+            if edge['source'] in self.routers and edge['target'] in self.hosts or edge['source'] in self.hosts and edge['target'] in self.routers:
+                self.edge_links.append((str(edge['source']), str(edge['target'])))
+                self.edge_links_properties.append(edge_property)
+        if self.verbose:
+            print "*** Edgelinks:", self.edge_links
       
 if __name__ == '__main__':
     parser = SRv6TopoParser(topo="example/example_srv6_topology.json", verbose=False)
@@ -154,7 +206,12 @@ if __name__ == '__main__':
     print "*** Nodes:"
     for router, router_property in zip(parser.getRouters(), parser.getRoutersProperties()):
         print "*** Router: %s - Property: %s" % (router, router_property)
+    for host, hosts_property in zip(parser.getHosts(), parser.getHostsProperties()):
+        print "*** Host: %s - Property: %s" % (host, host_property)
     print "*** Core Links"
     for core_link, core_link_property in zip(parser.getCoreLinks(), parser.getCoreLinksProperties()):
         print "*** Core Link: %s - Property: %s" % (core_link, core_link_property)
+    print "*** Edge Links"
+    for edge_link, edge_link_property in zip(parser.getEdgeLinks(), parser.getEdgeLinksProperties()):
+        print "*** Edge Link: %s - Property: %s" % (edge_link, edge_link_property)
     print "*** Testbed", parser.testbed
