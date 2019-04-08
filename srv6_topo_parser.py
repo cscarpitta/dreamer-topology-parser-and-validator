@@ -210,8 +210,6 @@ class SRv6TopoParser(TopoParser):
             elif 'Controller' in curvtype:
                 self.controllers.append(str(vertex['id']))
                 self.controllers_properties.append(curvproperty)
-        print "ccc"
-        print self.controllers
         if self.verbose:
             print "*** Routers:", self.routers
             print "*** Hosts:", self.hosts
@@ -245,8 +243,6 @@ class SRv6TopoParser(TopoParser):
 
     # Parses mgmt_links from topo_json_data
     def load_mgmt_links(self):
-        print self.controllers
-
         if self.verbose:
             print "*** Retrieve Management Links"
         edges = self.topo_json_data['edges']
