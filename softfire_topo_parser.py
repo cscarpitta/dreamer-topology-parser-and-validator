@@ -25,6 +25,8 @@
 # @author Stefano Salsano <stefano.salsano@uniroma2.it>
 # @author Francesco Lombardo <franclombardo@gmail.com>
 
+from __future__ import print_function
+
 import os
 import json
 import sys
@@ -38,7 +40,7 @@ class SoftFireTopoParser(SRv6TopoParser):
     Init Function, load json_data from topo and ob (if provided)
     """
     def __init__(self, topo, ob, verbose=False):
-        super(SRv6TopoParser, self).__init__(topo, verbose)
+        super(SoftFireTopoParser, self).__init__(topo, verbose)
         self.servers = []
         self.servers_properties = []
         self.routers = []
@@ -54,29 +56,29 @@ class SoftFireTopoParser(SRv6TopoParser):
         self.parsed = False
 
         if self.verbose:
-            print "*** __init__: version topology format:", self.version
+            print("*** __init__: version topology format:", self.version)
         topo = self.path + topo
         if os.path.exists(topo) == False:
-            print "Error Topo File %s Not Found" % topo
+            print("Error Topo File %s Not Found" % topo)
             sys.exit(-2)
         topo_json_file = open(topo)
         self.topo_json_data = json.load(topo_json_file)
         topo_json_file.close()
         if self.verbose:
-            print "*** topo data loaded:"
-            print json.dumps(self.topo_json_data, sort_keys=True, indent=4)
+            print("*** topo data loaded:")
+            print(json.dumps(self.topo_json_data, sort_keys=True, indent=4))
 
         self.ob_json_data = {}
         ob = self.path + ob
         if os.path.exists(ob) == False:
-            print "Openbaton Json File %s Not Found" % ob
+            print("Openbaton Json File %s Not Found" % ob)
         else:
             ob_json_file = open(ob)
             self.ob_json_data = json.load(ob_json_file)
             ob_json_file.close()
         if self.verbose:
-            print "*** ob data loaded:"
-            print json.dumps(self.ob_json_data, sort_keys=True, indent=4)
+            print("*** ob data loaded:")
+            print(json.dumps(self.ob_json_data, sort_keys=True, indent=4))
 
     """
     Parse Function, firstly it retrieves the vertices from json data,
@@ -118,18 +120,18 @@ class SoftFireTopoParser(SRv6TopoParser):
     def load_advanced(self):
         advanced_options = self.json_data['graph_parameters'] if 'graph_parameters' in self.json_data else []
         if 'tunneling' not in advanced_options:
-            print "Error No Tunneling Data"
+            print("Error No Tunneling Data")
             sys.exit(-2)
         self.tunneling = advanced_options['tunneling']
         if self.tunneling == "":
             self.tunneling = "VXLAN"
         if 'testbed' not in advanced_options:
-            print "Error No Testbed Data"
+            print("Error No Testbed Data")
             sys.exit(-2)
         testbeds_types = ["SOFTFIRE"]
         testbed = advanced_options['testbed']
         if testbed not in testbeds_types:
-            print "%s Not Supported" % testbed
+            print("%s Not Supported" % testbed)
             sys.exit(-2)
         self.testbed = testbed
 
@@ -138,7 +140,7 @@ class SoftFireTopoParser(SRv6TopoParser):
     """
     def load_vertex(self):
         if self.verbose:
-            print "*** Retrieve Vertex"
+            print("*** Retrieve Vertex")
         vertices = self.json_data['vertices']
         for vertex in vertices:
             curvtype = vertex['info']['type']
@@ -163,9 +165,9 @@ class SoftFireTopoParser(SRv6TopoParser):
                 self.vnf_term_dict[str(vertex['id'])]=curvproperty
                 self.vnf_term_dict[str(vertex['id'])]['type']='term_lxdcont'
         if self.verbose:
-            print "*** Routers:", self.routers
-            print "*** Routers dict:", self.routers_dict
-            print "*** vnf_term_dict:", self.vnf_term_dict
+            print("*** Routers:", self.routers)
+            print("*** Routers dict:", self.routers_dict)
+            print("*** vnf_term_dict:", self.vnf_term_dict)
 
     """
     Parses vnfs and terms from json_data
@@ -176,7 +178,7 @@ class SoftFireTopoParser(SRv6TopoParser):
     """
     def load_vnfs_and_terms(self):
         if self.verbose:
-            print "*** Retrieve Vnfs and Terms"
+            print("*** Retrieve Vnfs and Terms")
         edges = self.json_data['edges']
         for edge in edges:
             myrouter = ""
@@ -193,7 +195,7 @@ class SoftFireTopoParser(SRv6TopoParser):
                 else :
                     self.routers_dict[myrouter].update({'vnfs_and_terms':{myvnf_ter:self.vnf_term_dict[myvnf_ter]}})
         if self.verbose:
-            print "*** Routers dict updated:", self.routers_dict
+            print("*** Routers dict updated:", self.routers_dict)
 
     """
     Parses ob information
@@ -206,14 +208,14 @@ class SoftFireTopoParser(SRv6TopoParser):
                 ip_dict.update({'floating_ip':str(myvnf['vdu'][0]['vnfc_instance'][0]['floatingIps'][0]['ip'])})
                 self.ip_addr_map[str(myvnf['name'])]=ip_dict
         if self.verbose:
-            print "*** IP address map: \n", self.ip_addr_map
+            print("*** IP address map: \n", self.ip_addr_map)
 
     """
     Parses vm-to-testbeds information
     """
     def load_vm_testbeds(self):
         if self.verbose:
-            print "*** Retrieve VM to tesbed map"
+            print("*** Retrieve VM to tesbed map")
         edges = self.json_data['edges']
         for edge in edges:
             myrouter = ""
@@ -227,17 +229,17 @@ class SoftFireTopoParser(SRv6TopoParser):
             if myrouter != "" :  
                 self.routers_dict[myrouter].update({'vim':mytestbed})
         if self.verbose:
-            print "*** VM to tesbed map:", self.routers_dict
+            print("*** VM to tesbed map:", self.routers_dict)
       
 if __name__ == '__main__':
     parser = SoftFireTopoParser(topo="example/example_softfire_topology.json",
         ob="example/example_openbaton_notification", verbose=False)
     parser.parse_data()
-    print "*** Nodes:"
+    print("*** Nodes:")
     for router, router_property in zip(parser.getRouters(), parser.getRoutersProperties()):
-        print "*** Router: %s - Property: %s" % (router, router_property)
-    print "*** Core Links"
+        print("*** Router: %s - Property: %s" % (router, router_property))
+    print("*** Core Links")
     for core_link, core_link_property in zip(parser.getCoreLinks(), parser.getCoreLinksProperties()):
-        print "*** Core Link: %s - Property: %s" % (core_link, core_link_property)
-    print "*** Tunneling", parser.tunneling
-    print "*** Testbed", parser.testbed
+        print("*** Core Link: %s - Property: %s" % (core_link, core_link_property))
+    print("*** Tunneling", parser.tunneling)
+    print("*** Testbed", parser.testbed)

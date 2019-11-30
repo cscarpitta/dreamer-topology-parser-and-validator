@@ -61,17 +61,17 @@ class TopoParser(object):
         self.vlan = None
 
         if self.verbose:
-            print "*** __init__: version topology format:", self.version
+            print("*** __init__: version topology format:", self.version)
         path_json = self.path + path_json
         if os.path.exists(path_json) == False:
-            print "Error Topo File %s Not Found" % path_json
+            print("Error Topo File %s Not Found" % path_json)
             sys.exit(-2)
         json_file = open(path_json)
         self.json_data = json.load(json_file)
         json_file.close()
         if self.verbose:
-            print "*** JSON Data Loaded:"
-            print json.dumps(self.json_data, sort_keys=True, indent=4)
+            print("*** JSON Data Loaded:")
+            print(json.dumps(self.json_data, sort_keys=True, indent=4))
 
     """
     Parse Function, firstly it retrieves the vertices from json data,
@@ -107,41 +107,41 @@ class TopoParser(object):
 
     def load_advanced(self):
         if self.verbose:
-            print "*** Retrieve Advanced Option"
+            print("*** Retrieve Advanced Option")
         advanced_options = self.json_data['graph_parameters'] if 'graph_parameters' in self.json_data else []
         if 'tunneling' not in advanced_options:
-            print "Error No Tunneling Data"
+            print("Error No Tunneling Data")
             sys.exit(-2)
         self.tunneling = advanced_options['tunneling']
         if self.tunneling == "":
             self.tunneling = "VXLAN"
         if 'testbed' not in advanced_options:
-            print "Error No Testbed Data"
+            print("Error No Testbed Data")
             sys.exit(-2)
         testbeds = ["OFELIA", "GOFF", "GTS", "MININET", "SOFTFIRE"]
         testbed = advanced_options['testbed']
         if testbed not in testbeds:
-            print "%s Not Supported" % testbed
+            print("%s Not Supported" % testbed)
             sys.exit(-2)
         self.testbed = testbed
         if 'mapped' not in advanced_options:
-            print "Error No Mapped Data"
+            print("Error No Mapped Data")
             sys.exit(-2)
         self.mapped = advanced_options['mapped']
         if 'generated' not in advanced_options:
-            print "Error No Generated Data"
+            print("Error No Generated Data")
             sys.exit(-2)
         self.generated = advanced_options['generated']
         if 'vlan' not in advanced_options:
-            print "Error No VLAN Data"
+            print("Error No VLAN Data")
             sys.exit(-2)
         vlan = advanced_options['vlan']
         try:
             self.vlan = int(vlan)
         except ValueError:
-            print "Error VLAN Data"
+            print("Error VLAN Data")
         if self.mapped == True and self.vlan <= 0 and self.testbed != "MININET":
-            print "Invalid VLAN Data"
+            print("Invalid VLAN Data")
             sys.exit(-2)
 
     """
@@ -153,7 +153,7 @@ class TopoParser(object):
         if self.version == 2:
             return self.load_vertex_v2()
         if self.verbose:
-            print "*** Retrieve Vertex"
+            print("*** Retrieve Vertex")
         vertices = self.json_data['vertices']
         for vertex in vertices:
 
@@ -181,15 +181,15 @@ class TopoParser(object):
                 self.l2vss.append('vs%s' % number[0])
 
         if self.verbose:
-            print "*** CROSHI:", self.cr_oshis
-            print "*** PEOSHI:", self.pe_oshis
-            print "*** CER:", self.cers
-            print "*** CTRL:", self.ctrls
-            print "*** VS:", self.l2vss
+            print("*** CROSHI:", self.cr_oshis)
+            print("*** PEOSHI:", self.pe_oshis)
+            print("*** CER:", self.cers)
+            print("*** CTRL:", self.ctrls)
+            print("*** VS:", self.l2vss)
 
     def load_vertex_v2(self):
         if self.verbose:
-            print "*** Retrieve Vertex"
+            print("*** Retrieve Vertex")
         vertices = self.json_data['vertices']
 
         for vertex in vertices:
@@ -211,17 +211,17 @@ class TopoParser(object):
                 self.l2vss.append(str(vertex['id']))
 
         if self.verbose:
-            print "*** CROSHI:", self.cr_oshis
-            print "*** PEOSHI:", self.pe_oshis
-            print "*** CER:", self.cers
-            print "*** CTRL:", self.ctrls
-            print "*** VS:", self.l2vss
+            print("*** CROSHI:", self.cr_oshis)
+            print("*** PEOSHI:", self.pe_oshis)
+            print("*** CER:", self.cers)
+            print("*** CTRL:", self.ctrls)
+            print("*** VS:", self.l2vss)
 
     def load_vss(self):
         if self.version == 2:
             return self.load_vss_v2()
         if self.verbose:
-            print "*** Retrieve VSs"
+            print("*** Retrieve VSs")
         edges = self.json_data['edges']
         for l2vs in self.l2vss:
             vs = []
@@ -235,7 +235,7 @@ class TopoParser(object):
 
     def load_vss_v2(self):
         if self.verbose:
-            print "*** Retrieve VSs"
+            print("*** Retrieve VSs")
         edges = self.json_data['edges']
         for l2vs in self.l2vss:
             vs = []
@@ -250,7 +250,7 @@ class TopoParser(object):
         if self.version == 2:
             return self.load_links_v2()
         if self.verbose:
-            print "*** Retrieve Links"
+            print("*** Retrieve Links")
         edges = self.json_data['edges']
         for edge in edges:
             vertids = edge.split('&&')
@@ -263,12 +263,12 @@ class TopoParser(object):
                     self.pplinks.append((vertids[0], vertids[1], link))
 
         if self.verbose:
-            print "*** PPlinks:", self.pplinks
-            print "*** VLLs:", self.vlls
+            print("*** PPlinks:", self.pplinks)
+            print("*** VLLs:", self.vlls)
 
     def load_links_v2(self):
         if self.verbose:
-            print "*** Retrieve Links"
+            print("*** Retrieve Links")
         edges = self.json_data['edges']
         for edge in edges:
             if edge['view'] == 'Vll':
@@ -279,8 +279,8 @@ class TopoParser(object):
                 self.pplinks.append((str(edge['source']), str(edge['target']), edge))
 
         if self.verbose:
-            print "*** PPlinks:", self.pplinks
-            print "*** VLLs:", self.vlls
+            print("*** PPlinks:", self.pplinks)
+            print("*** VLLs:", self.vlls)
 
     """
     From the parsed Links, creates the associates Subnet
@@ -295,32 +295,32 @@ class TopoParser(object):
         self.pplinks = []
         if self.verbose:
             i = 0
-            print "*** Subnets:"
+            print("*** Subnets:")
             for subnet in self.ppsubnets:
-                print "*** PP Subnet(%s): Nodes %s - Links %s" % (i + 1, subnet.nodes, subnet.links)
+                print("*** PP Subnet(%s): Nodes %s - Links %s" % (i + 1, subnet.nodes, subnet.links))
                 i = i + 1
 
 if __name__ == '__main__':
     parser = TopoParser("example/example_dreamer_topology.json", verbose=False, version=2)
     ppsubnets = parser.getsubnets()
-    print "*** Nodes:"
+    print("*** Nodes:")
     for cr, cr_property in zip(parser.cr_oshis, parser.cr_oshis_properties):
-        print "*** CR: %s - Property: %s" % (cr, cr_property)
+        print("*** CR: %s - Property: %s" % (cr, cr_property))
     for pe, pe_property in zip(parser.pe_oshis, parser.pe_oshis_properties):
-        print "*** PE: %s - Property: %s" % (pe, pe_property)
+        print("*** PE: %s - Property: %s" % (pe, pe_property))
     for cer, cer_property in zip(parser.cers, parser.cers_properties):
-        print "*** CER: %s - Property: %s" % (cer, cer_property)
+        print("*** CER: %s - Property: %s" % (cer, cer_property))
     for ctrl, ctrl_property in zip(parser.ctrls, parser.ctrls_properties):
-        print "*** CTRL: %s - Property: %s" % (ctrl, ctrl_property)
-    print "*** Networks Point To Point"
+        print("*** CTRL: %s - Property: %s" % (ctrl, ctrl_property))
+    print("*** Networks Point To Point")
     for ppsubnet in ppsubnets:
         links = ppsubnet.links
-        print "*** Subnet: Node %s - Links %s" % (ppsubnet.nodes, links)
-    print "*** VLLs", parser.getVLLs()
-    print "*** PWs", parser.getPWs()
-    print "*** VSs", parser.getVSs()
-    print "*** Tunneling", parser.tunneling
-    print "*** Testbed", parser.testbed
-    print "*** Mapped", parser.mapped
-    print "*** Generated", parser.generated
-    print "*** VLAN", parser.vlan
+        print("*** Subnet: Node %s - Links %s" % (ppsubnet.nodes, links))
+    print("*** VLLs", parser.getVLLs())
+    print("*** PWs", parser.getPWs())
+    print("*** VSs", parser.getVSs())
+    print("*** Tunneling", parser.tunneling)
+    print("*** Testbed", parser.testbed)
+    print("*** Mapped", parser.mapped)
+    print("*** Generated", parser.generated)
+    print("*** VLAN", parser.vlan)
